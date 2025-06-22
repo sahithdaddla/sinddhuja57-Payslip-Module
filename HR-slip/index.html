@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Payslip Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            width: 95%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .logo {
+            height: 100px;
+            border-radius: 15px;
+        }
+        .company-info {
+            text-align: right;
+        }
+        .company-info h2 {
+            color: #4472C4;
+            margin-bottom: 5px;
+        }
+        .company-info p {
+            margin: 0;
+            font-size: 12px;
+        }
+        .page-title {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        .col {
+            flex: 1;
+        }
+        .earnings, .deductions {
+            margin-top: 20px;
+        }
+        h3 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        button {
+            background-color: #4472C4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #3a63b0;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        .error-text {
+            color: #a94442;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        input.invalid {
+            border: 1px solid #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="../ATS Logo.jpg" alt="ATS Logo" class="logo">
+            <div class="company-info">
+                <h2>Astrolite Tech Solutions Pvt Ltd</h2>
+                <p>Plot No 65, Flat No 201, 2nd Floor, Siddivinayaka Nagar,</p>
+                <p>Survey of India, Madhapur, HYDERABAD -081</p>
+            </div>
+        </div>
+
+        <div class="page-title">Salary Slip Generator</div>
+
+        <form id="payslipForm">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="employeeName">Employee Name:</label>
+                        <input type="text" id="employeeName" required minlength="5" maxlength="30" pattern="[A-Za-z]+(\s[A-Za-z]+)*" title="Please enter alphabets only (5-30 characters excluding spaces, single spaces)" onkeypress="return /[A-Za-z]/.test(event.key) || event.key === ' '" oninput="restrictSpaces(this)">
+                        <span class="error-text" id="employeeName-error">Please enter alphabets only (5-30 characters excluding spaces, single spaces)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="employeeType">Employee Type:</label>
+                        <select id="employeeType" required>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Temporary">Temporary</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="employeeCode">Employee Code:</label>
+                        <input type="text" id="employeeCode" required pattern="ATS0(?!000)\d{3}$" maxlength="7" title="Employee code must be in format ATS0XXX (where XXX is 001-999)" onkeypress="return /[A-Za-z0-9]/.test(event.key)">
+                        <span class="error-text" id="employeeCode-error">Employee code must be in format ATS0XXX (where XXX is 001-999)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="designation">Designation:</label>
+                        <input type="text" id="designation" required minlength="5" maxlength="30" pattern="[A-Za-z]+(\s[A-Za-z]+)*" title="Please enter alphabets only (5-30 characters excluding spaces, single spaces)" onkeypress="return /[A-Za-z]/.test(event.key) || event.key === ' '" oninput="restrictSpaces(this)">
+                        <span class="error-text" id="designation-error">Please enter alphabets only (5-30 characters excluding spaces, single spaces)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="month">Month:</label>
+                        <select id="month" required onchange="updateDaysInMonth()">
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December" selected>December</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="year">Year:</label>
+                        <input type="number" id="year" value="2024" required min="2000" max="2100" maxlength="4" oninput="restrictLength(this, 4); updateDaysInMonth()">
+                        <span class="error-text" id="year-error">Please enter a valid year (4 digits)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="joiningDate">Date of Joining:</label>
+                        <input type="date" id="joiningDate" required>
+                        <span class="error-text" id="joiningDate-error">Please select a valid date</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="location">Current Office Location:</label>
+                        <input type="text" id="location" required minlength="3" maxlength="30" pattern="[A-Za-z]+(\s[A-Za-z]+)*" title="Please enter alphabets only (3-30 characters excluding spaces, single spaces)" onkeypress="return /[A-Za-z]/.test(event.key) || event.key === ' '" oninput="restrictSpaces(this)">
+                        <span class="error-text" id="location-error">Please enter alphabets only (3-30 characters excluding spaces, single spaces)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="daysInMonth">Days in Month:</label>
+                        <input type="number" id="daysInMonth" required min="28" max="31" maxlength="2" readonly>
+                        <span class="error-text" id="daysInMonth-error">Please enter a valid number of days (28-31)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="workingDays">Working Days:</label>
+                        <input type="number" id="workingDays" required min="0" max="31" maxlength="2" oninput="restrictLength(this, 2)">
+                        <span class="error-text" id="workingDays-error">Please enter a valid number (0-31)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="arrearDays">Arrear Days:</label>
+                        <input type="number" id="arrearDays" required min="0" maxlength="2" oninput="restrictLength(this, 2)">
+                        <span class="error-text" id="arrearDays-error">Please enter a non-negative number</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="lopDays">LOP Days:</label>
+                        <input type="number" id="lopDays" required min="0" maxlength="2" oninput="restrictLength(this, 2)">
+                        <span class="error-text" id="lopDays-error">Please enter a non-negative number</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="bankName">Bank Name:</label>
+                        <input type="text" id="bankName" required minlength="3" maxlength="30" pattern="[A-Za-z]+(\s[A-Za-z]+)*" title="Please enter alphabets only (3-30 characters excluding spaces, single spaces)" onkeypress="return /[A-Za-z]/.test(event.key) || event.key === ' '" oninput="restrictSpaces(this)">
+                        <span class="error-text" id="bankName-error">Please enter alphabets only (3-30 characters excluding spaces, single spaces)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="accountNo">Account No:</label>
+                        <input type="text" id="accountNo" required pattern="^\d{8,18}$" maxlength="18" title="Account number must be 8-18 digits only" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 18)">
+                        <span class="error-text" id="accountNo-error">Account number must be 8-18 digits only</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="panNo">PAN No:</label>
+                        <input type="text" id="panNo" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" maxlength="10" title="Please enter valid PAN card format (ABCDE1234F)" onkeypress="return /[A-Za-z0-9]/.test(event.key)" oninput="restrictLength(this, 10)">
+                        <span class="error-text" id="panNo-error">Please enter valid PAN card format (ABCDE1234F)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="pfNo">Provident Fund No:</label>
+                        <input type="text" id="pfNo" required pattern="[A-Z]{5}\d{8,18}" minlength="13" maxlength="23" title="PF number must start with 5 capital letters followed by 8-18 digits" onkeypress="return /[A-Za-z0-9]/.test(event.key)" oninput="restrictLength(this, 23)">
+                        <span class="error-text" id="pfNo-error">PF number must start with 5 capital letters followed by 8-18 digits</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="esicNo">ESIC Number:</label>
+                        <input type="text" id="esicNo" required pattern="\d{10}" minlength="10" maxlength="10" title="ESIC number must be exactly 10 digits" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 10)">
+                        <span class="error-text" id="esicNo-error">ESIC number must be exactly 10 digits</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="uanNo">UAN No:</label>
+                        <input type="text" id="uanNo" required pattern="1\d{10}" minlength="11" maxlength="11" title="UAN number must start with 1 followed by 10 digits" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 11)">
+                        <span class="error-text" id="uanNo-error">UAN number must start with 1 followed by 10 digits</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Earnings</h3>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="basicSalary">Basic Salary:</label>
+                        <input type="text" id="basicSalary" required pattern="\d{1,7}" minlength="1" maxlength="7" title="Please enter a valid number (1-9999999)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 7); preventAllZeroes(this)">
+                        <span class="error-text" id="basicSalary-error">Please enter a valid number (1-9999999)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="hraAllowance">House Rent Allowance:</label>
+                        <input type="text" id="hraAllowance" required pattern="\d{1,7}" minlength="1" maxlength="7" title="Please enter a valid number (1-9999999)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 7); preventAllZeroes(this)">
+                        <span class="error-text" id="hraAllowance-error">Please enter a valid number (1-9999999)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="educationAllowance">Education Allowance:</label>
+                        <input type="text" id="educationAllowance" required pattern="\d{1,7}" minlength="1" maxlength="7" title="Please enter a valid number (1-9999999)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 7); preventAllZeroes(this)">
+                        <span class="error-text" id="educationAllowance-error">Please enter a valid number (1-9999999)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="bonus">Bonus / Ex-gratia:</label>
+                        <input type="text" id="bonus" required pattern="\d{1,7}" minlength="1" maxlength="7" title="Please enter a valid number (1-9999999)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 7); preventAllZeroes(this)">
+                        <span class="error-text" id="bonus-error">Please enter a valid number (1-9999999)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="otherAllowance">Other Allowance:</label>
+                        <input type="text" id="otherAllowance" required pattern="\d{1,7}" minlength="1" maxlength="7" title="Please enter a valid number (1-9999999)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 7); preventAllZeroes(this)">
+                        <span class="error-text" id="otherAllowance-error">Please enter a valid number (1-9999999)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <!-- Empty for alignment -->
+                </div>
+            </div>
+
+            <h3>Deductions</h3>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="professionalTax">Professional Tax:</label>
+                        <input type="text" id="professionalTax" required pattern="(200|50[0]|[2-4][0-9]{2})" maxlength="3" title="Please enter a valid number (200-500)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 3)">
+                        <span class="error-text" id="professionalTax-error">Please enter a valid number (200-500)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="laborWelfare">Labour Welfare Fund:</label>
+                        <input type="text" id="laborWelfare" required pattern="[2-4][0-9]|50" maxlength="2" title="Please enter a valid number (20-50)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 2)">
+                        <span class="error-text" id="laborWelfare-error">Please enter a valid number (20-50)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="epf">Employee Provident Fund (EPF):</label>
+                        <input type="text" id="epf" required pattern="\d{1,5}" maxlength="5" title="Please enter a valid number (0-99999)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 5)">
+                        <span class="error-text" id="epf-error">Please enter a valid number (0-99999)</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label for="ppf">Public Provident Fund (PPF):</label>
+                        <input type="text" id="ppf" required pattern="\d{1,5}" maxlength="5" title="Please enter a valid number (0-99999)" onkeypress="return /[0-9]/.test(event.key)" oninput="restrictLength(this, 5)">
+                        <span class="error-text" id="ppf-error">Please enter a valid number (0-99999)</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" id="generatePayslip">Generate Payslip</button>
+        </form>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        function restrictSpaces(input) {
+            const start = input.selectionStart;
+            const before = input.value;
+            let value = input.value;
+            value = value.replace(/^\s+/, '');
+            value = value.replace(/\s{2,}/g, ' ');
+            input.value = value;
+            const after = input.value;
+            let newPos = start;
+            if (before.length > after.length) {
+                newPos -= before.length - after.length;
+            } else if (before.length < after.length) {
+                newPos += after.length - before.length;
+            }
+            input.setSelectionRange(newPos, newPos);
+            restrictLength(input, input.maxLength);
+            validateField(input);
+        }
+
+        function restrictLength(input, maxLength) {
+            const charCount = input.value.replace(/\s/g, '').length;
+            if (charCount > maxLength) {
+                let trimmedValue = '';
+                let nonSpaceCount = 0;
+                for (let char of input.value) {
+                    if (char !== ' ') {
+                        if (nonSpaceCount < maxLength) {
+                            trimmedValue += char;
+                            nonSpaceCount++;
+                        }
+                    } else {
+                        trimmedValue += char;
+                    }
+                }
+                input.value = trimmedValue;
+            }
+        }
+
+        function preventAllZeroes(input) {
+            if (input.value.match(/^0+$/)) {
+                input.value = '';
+                validateField(input);
+            }
+        }
+
+        function updateDaysInMonth() {
+            const month = document.getElementById('month').value;
+            const year = parseInt(document.getElementById('year').value) || 2024;
+            const daysInMonthInput = document.getElementById('workingDays');
+            let days;
+
+            const monthDays = {
+                'January': 31,
+                'February': (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 29 : 28,
+                'March': 31,
+                'April': 30,
+                'May': 31,
+                'June': 30,
+                'July': 31,
+                'August': 31,
+                'September': 30,
+                'October': 31,
+                'November': 30,
+                'December': 31
+            };
+
+            days = monthDays[month];
+            document.getElementById('daysInMonth').value = days;
+            daysInMonthInput.setAttribute('max', days);
+            if (parseInt(daysInMonthInput.value) > days) {
+                daysInMonthInput.value = days;
+            }
+            validateField(daysInMonthInput);
+        }
+
+        const inputFields = document.querySelectorAll('input');
+        inputFields.forEach(field => {
+            field.addEventListener('input', function() {
+                validateField(this);
+            });
+            field.addEventListener('blur', function() {
+                validateField(this);
+            });
+        });
+
+        function validateField(field) {
+            if (field.id === 'joiningDate') {
+                field.classList.remove('invalid');
+                const errorElement = document.getElementById('joiningDate-error');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+                return true;
+            }
+
+            const errorElement = document.getElementById(`${field.id}-error`);
+            if (!errorElement) return true;
+
+            let isValid = true;
+
+            if (field.hasAttribute('required') && field.value.trim() === '') {
+                isValid = false;
+            }
+
+            if (field.pattern && field.value) {
+                const regex = new RegExp(field.pattern);
+                if (!regex.test(field.value)) {
+                    isValid = false;
+                }
+            }
+
+            if (['employeeName', 'designation', 'location', 'bankName'].includes(field.id) && field.value) {
+                const charCount = field.value.replace(/\s/g, '').length;
+                if (field.minLength && charCount < field.minLength) {
+                    isValid = false;
+                }
+                if (field.maxLength && charCount > field.maxLength) {
+                    isValid = false;
+                }
+            } else {
+                if (field.minLength && field.value && field.value.length < field.minLength) {
+                    isValid = false;
+                }
+                if (field.maxLength && field.value && field.value.length > field.maxLength) {
+                    isValid = false;
+                }
+            }
+
+            if (field.type === 'number' && field.value) {
+                const value = parseFloat(field.value);
+                if (field.hasAttribute('min') && (isNaN(value) || value < parseFloat(field.min))) {
+                    isValid = false;
+                }
+                if (field.hasAttribute('max') && (isNaN(value) || value > parseFloat(field.max))) {
+                    isValid = false;
+                }
+            }
+
+            if (['basicSalary', 'hraAllowance', 'educationAllowance', 'bonus', 'otherAllowance'].includes(field.id) && field.value) {
+                const value = parseFloat(field.value);
+                if (isNaN(value) || value < 1 || value > 9999999) {
+                    isValid = false;
+                }
+            }
+            if (field.id === 'professionalTax' && field.value) {
+                const value = parseFloat(field.value);
+                if (isNaN(value) || value < 200 || value > 500) {
+                    isValid = false;
+                }
+            }
+            if (field.id === 'laborWelfare' && field.value) {
+                const value = parseFloat(field.value);
+                if (isNaN(value) || value < 20 || value > 50) {
+                    isValid = false;
+                }
+            }
+            if (['epf', 'ppf'].includes(field.id) && field.value) {
+                const value = parseFloat(field.value);
+                if (isNaN(value) || value < 0 || value > 99999) {
+                    isValid = false;
+                }
+            }
+
+            if (['basicSalary', 'hraAllowance', 'educationAllowance', 'bonus', 'otherAllowance'].includes(field.id) && field.value.match(/^0+$/)) {
+                isValid = false;
+            }
+
+            if (isValid) {
+                field.classList.remove('invalid');
+                errorElement.style.display = 'none';
+            } else {
+                field.classList.add('invalid');
+                errorElement.style.display = 'block';
+            }
+
+            return isValid;
+        }
+
+        document.getElementById('generatePayslip').addEventListener('click', async function() {
+            let isValid = true;
+            inputFields.forEach(field => {
+                if (!validateField(field)) {
+                    isValid = false;
+                }
+            });
+
+            const form = document.getElementById('payslipForm');
+            if (!isValid || !form.checkValidity()) {
+                showMessage('Please fill all required fields correctly', 'error');
+                return;
+            }
+
+            const monthNames = {
+                'January': '01', 'February': '02', 'March': '03', 'April': '04',
+                'May': '05', 'June': '06', 'July': '07', 'August': '08',
+                'September': '09', 'October': '10', 'November': '11', 'December': '12'
+            };
+
+            const payslipData = {
+                employeeName: document.getElementById('employeeName').value,
+                employeeType: document.getElementById('employeeType').value,
+                employeeId: document.getElementById('employeeCode').value,
+                designation: document.getElementById('designation').value,
+                month: monthNames[document.getElementById('month').value],
+                monthName: document.getElementById('month').value,
+                year: document.getElementById('year').value,
+                monthYearFormatted: `${document.getElementById('month').value} ${document.getElementById('year').value}`,
+                dateJoining: document.getElementById('joiningDate').value,
+                location: document.getElementById('location').value,
+                daysInMonth: parseInt(document.getElementById('daysInMonth').value),
+                workingDays: parseInt(document.getElementById('workingDays').value),
+                arrearDays: parseInt(document.getElementById('arrearDays').value),
+                lop: parseInt(document.getElementById('lopDays').value),
+                bankName: document.getElementById('bankName').value,
+                accountNo: document.getElementById('accountNo').value,
+                pan: document.getElementById('panNo').value,
+                providentFund: document.getElementById('pfNo').value,
+                esic: document.getElementById('esicNo').value,
+                uan: document.getElementById('uanNo').value,
+                earnings: [
+                    { component: 'Basic Salary', amount: parseFloat(document.getElementById('basicSalary').value) },
+                    { component: 'House Rent Allowance', amount: parseFloat(document.getElementById('hraAllowance').value) },
+                    { component: 'Education Allowance', amount: parseFloat(document.getElementById('educationAllowance').value) },
+                    { component: 'Bonus / Ex-gratia', amount: parseFloat(document.getElementById('bonus').value) },
+                    { component: 'Other Allowance', amount: parseFloat(document.getElementById('otherAllowance').value) }
+                ],
+                deductions: [
+                    { component: 'Professional Tax', amount: parseFloat(document.getElementById('professionalTax').value) },
+                    { component: 'Labour Welfare Fund', amount: parseFloat(document.getElementById('laborWelfare').value) },
+                    { component: 'Employee Provident Fund', amount: parseFloat(document.getElementById('epf').value) },
+                    { component: 'Public Provident Fund', amount: parseFloat(document.getElementById('ppf').value) }
+                ]
+            };
+
+            if (payslipData.workingDays > payslipData.daysInMonth) {
+                showMessage('Working days cannot be more than days in month', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/payslips', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payslipData)
+                });
+
+                if (response.ok) {
+                    showMessage('Payslip generated successfully and stored!', 'success');
+                    setTimeout(() => {
+                        form.reset();
+                        document.getElementById('month').value = 'December';
+                        document.getElementById('year').value = '2024';
+                        updateDaysInMonth();
+                        inputFields.forEach(field => {
+                            const errorElement = document.getElementById(`${field.id}-error`);
+                            if (errorElement) {
+                                field.classList.remove('invalid');
+                                errorElement.style.display = 'none';
+                            }
+                        });
+                        alert('Payslip generated successfully!');
+                    }, 3000);
+                } else {
+                    const errorData = await response.json();
+                    showMessage(errorData.error || 'Failed to generate payslip', 'error');
+                }
+            } catch (error) {
+                showMessage('Error connecting to server', 'error');
+            }
+        });
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        updateDaysInMonth();
+    </script>
+</body>
+</html>
