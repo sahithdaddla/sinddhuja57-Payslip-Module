@@ -4,7 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-const port = 3000;
+const port = 3101;
 
 // Middleware
 app.use(cors());
@@ -13,9 +13,9 @@ app.use(bodyParser.json());
 // PostgreSQL database connection
 const pool = new Pool({
     user: 'postgres', // Replace with your PostgreSQL username
-    host: 'localhost',
+    host: 'postgres',
     database: 'payslips_db',
-    password: 'root', // Replace with your PostgreSQL password
+    password: 'admin123', // Replace with your PostgreSQL password
     port: 5432,
 });
 
@@ -356,5 +356,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running at http://13.60.189.220:${port}`);
 });
