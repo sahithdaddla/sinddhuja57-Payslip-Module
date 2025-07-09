@@ -625,7 +625,7 @@
                     const year = document.getElementById('year').value;
 
                     try {
-                        const response = await fetch(`http://13.60.189.220:3101/api/payslips/${employeeId}/${month}/${year}`);
+                        const response = await fetch(`http://16.171.206.159:3101/api/payslips/${employeeId}/${month}/${year}`);
                         if (response.ok) {
                             const payslip = await response.json();
                             populatePreview(payslip);
@@ -642,7 +642,7 @@
                             document.getElementById('preview-container').style.display = 'none';
                         }
                     } catch (error) {
-                        showNotification('error', 'Failed to connect to the server. Please ensure the server is running at http://13.60.189.220:3101 and try again.');
+                        showNotification('error', 'Failed to connect to the server. Please ensure the server is running at http://16.171.206.159:3101 and try again.');
                         document.getElementById('no-results').style.display = 'block';
                         document.getElementById('preview-container').style.display = 'none';
                     }
