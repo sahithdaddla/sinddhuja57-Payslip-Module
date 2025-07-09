@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: payslip_postgres
+    restart: always
+    ports:
+      - "5528:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: payslips_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build:
+      context: ./Backend
+    container_name: payslip_backend
+    ports:
+      - "3101:3101"
+    depends_on:
+      - postgres
+    environment:
+      - PORT=3101
+
+  employee-slip:
+    build:
+      context: ./Employee-slip
+    container_name: employee_slip_ui
+    ports:
+      - "8338:80"
+    depends_on:
+      - backend
+
+  hr-slip:
+    build:
+      context: ./HR-slip
+    container_name: hr_slip_ui
+    ports:
+      - "8339:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+
